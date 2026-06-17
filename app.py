@@ -4,7 +4,7 @@ import google.generativeai as genai
 
 app = Flask(__name__)
 
-# إعداد مفتاح الذكاء الاصطناعي من متغيرات Railway
+# إعداد مفتاح الذكاء الاصطناعي من متغيرات Vercel
 GEMINI_API_KEY = os.getenv("GEMINI_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
@@ -83,18 +83,18 @@ HTML_TEMPLATE = """
 
 @app.route('/')
 def home():
-    # 1. سحب الـ IP الحقيقي للمستخدم (مع تخطي بروكسي رايلواي)
+    # 1. سحب الـ IP الحقيقي للمستخدم (متوافق مع سيرفرات Vercel)
     ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-    if ',' in ip:
+    if ip and ',' in ip:
         ip = ip.split(',')[0].strip()
 
     # 2. سحب بيانات المتصفح والجهاز
     user_agent = request.headers.get('User-Agent', 'Unknown Device')
     
-    # 3. سحب الدولة أو المدينة تقريبياً من هيدرز السيرفر
-    country = request.headers.get('X-Vercel-IP-Country', request.headers.get('Cf-Ipcountry', 'العراق (تحديد تقريبي)'))
+    # 3. سحب الدولة من سيرفر Vercel تلقائياً
+    country = request.headers.get('X-Vercel-IP-Country', 'العراق (تحديد تقريبي)')
     
-    # 4. تمرير البيانات لـ Gemini لكي يصيغ تقرير مرعب وذكي ومقنع
+    # 4. تمرير البيانات لـ Gemini
     ai_analysis = "جاري تحليل الثغرات المحتملة لجهازك ونظام تشغيلك الحين..."
     if ai_model:
         try:
@@ -105,15 +105,14 @@ def home():
             بيانات المتصفح والنظام: {user_agent}
             الموقع: {country}
             
-            اكتب تقرير وعي أمني قصير باللغة العربية العامية المبسطة صدمة للمستخدم. أخبره بنوع نظامه المكتشف (مثلاً أندرويد أو آيفون أو ويندوز)، وعلمه أن الـ IP ماله والموقع مكشوفين لأي رابط يضغط عليه، واعطه نصيحة أمنية سريعة لحماية جهازه من الاختراق بأسلوب احترافي ومثير.
+            اكتب تقرير وعي أمني قصير باللغة العربية العامية العراقية المبسطة صدمة للمستخدم. أخبره بنوع نظامه المكتشف (مثلاً أندرويد أو آيفون أو ويندوز)، وعلمه أن الـ IP ماله والموقع مكشوفين لأي رابط يضغط عليه، واعطه نصيحة أمنية سريعة لحماية جهازه من الاختراق بأسلوب احترافي ومثير.
             """
             response = ai_model.generate_content(prompt)
             ai_analysis = response.text
         except Exception as e:
-            ai_analysis = f"فشل الاتصال ببروتوكول الذكاء الاصطناعي، لكن نظامك مكشوف وموقعك التقريبي هو {country}."
+            ai_analysis = f"نظامك مكشوف وموقعك التقريبي المكتشف هو {country}."
 
     return render_template_string(HTML_TEMPLATE, ip=ip, user_agent=user_agent, location=country, ai_analysis=ai_analysis)
 
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+# السطر الخاص بتشغيل التطبيق على سيرفرات Vercel
+app.wsgi_app = app.wsgi_app
