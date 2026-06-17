@@ -1,7 +1,8 @@
-import os
+   import os
 from flask import Flask, render_template_string, request
 import google.generativeai as genai
 
+# تعريف التطبيق
 app = Flask(__name__)
 
 # إعداد مفتاح الذكاء الاصطناعي من متغيرات Vercel
@@ -19,7 +20,7 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رادار فحص الأمان | أحمد الدليمي</title>
+    <title>رادار فحص الأمان | أبو بكر الحارث</title>
     <style>
         body {
             background-color: #030303;
@@ -74,7 +75,7 @@ HTML_TEMPLATE = """
             <p>{{ ai_analysis }}</p>
         </div>
         
-        <p style="text-align: center; margin-top: 25px; color: #00ffff;">💡 نصيحة المطور أحمد الدليمي: لا تضغط على روابط مجهولة!</p>
+        <p style="text-align: center; margin-top: 25px; color: #00ffff;">💡 نصيحة المطور: لا تضغط على روابط مجهولة!</p>
     </div>
     <div class="footer">🔒 Security Awareness Project &copy; 2026</div>
 </body>
@@ -83,7 +84,7 @@ HTML_TEMPLATE = """
 
 @app.route('/')
 def home():
-    # 1. سحب الـ IP الحقيقي للمستخدم (متوافق مع سيرفرات Vercel)
+    # 1. سحب الـ IP الحقيقي للمستخدم
     ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     if ip and ',' in ip:
         ip = ip.split(',')[0].strip()
@@ -99,13 +100,13 @@ def home():
     if ai_model:
         try:
             prompt = f"""
-            أنت خبير أمن سيبراني ومساعد للمطور أحمد الدليمي. 
+            أنت خبير أمن سيبراني ومساعد ذكي. 
             أمامك بيانات جهاز مستخدم ضغط على رابط أحمد:
             الـ IP: {ip}
             بيانات المتصفح والنظام: {user_agent}
             الموقع: {country}
             
-            اكتب تقرير وعي أمني قصير باللغة العربية العامية العراقية المبسطة صدمة للمستخدم. أخبره بنوع نظامه المكتشف (مثلاً أندرويد أو آيفون أو ويندوز)، وعلمه أن الـ IP ماله والموقع مكشوفين لأي رابط يضغط عليه، واعطه نصيحة أمنية سريعة لحماية جهازه من الاختراق بأسلوب احترافي ومثير.
+            اكتب تقرير وعي أمني قصير باللغة العربية العامية العراقية المبسطة صدمة للمستخدم. أخبره بنوع نظامه المكتشف، وعلمه أن الـ IP ماله وموقعه مكشوفين لأي رابط يضغط عليه، واعطه نصيحة أمنية سريعة لحماية جهازه من الاختراق بأسلوب احترافي ومثير.
             """
             response = ai_model.generate_content(prompt)
             ai_analysis = response.text
@@ -113,6 +114,3 @@ def home():
             ai_analysis = f"نظامك مكشوف وموقعك التقريبي المكتشف هو {country}."
 
     return render_template_string(HTML_TEMPLATE, ip=ip, user_agent=user_agent, location=country, ai_analysis=ai_analysis)
-
-# السطر الخاص بتشغيل التطبيق على سيرفرات Vercel
-app.wsgi_app = app.wsgi_app
